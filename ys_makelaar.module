@@ -1,0 +1,112 @@
+<?php
+/**
+* @file
+* Crawler to harvest realty on Curacao.
+*
+*/
+
+/**
+* Implements hook_node_info() to provide our job_post type.
+*/
+function ys_makelaar_node_info() {
+  return array(
+    'job_post' => array(
+    'name' => t('Job Post'),
+    'base' => 'node_content',
+    'description' => t('Use this content type to post a job.'),
+    'has_title' => TRUE,
+    'title_label' => t('Job Title'),
+    'help' => t('Enter the job title,
+       job description, and the name of the company that posted the job'),
+    ),
+  );
+}
+/*A single module can define multiple node types, so the return value should be an array. Here’s the
+breakdown of metadata values that may be provided in the node_info() hook:
+"name": The human-readable name of the node type. Required.
+"base": The base string used to construct callbacks corresponding to this node
+type (i.e., if base is defined as example_foo, then example_foo_insert will be
+called when inserting a node of that type). This string is usually the name of the
+module, but not always. Required.
+"description": A brief description of the node type. Required.
+"help": Help information shown to the user when creating a node of this type.
+Optional (defaults to '').
+"has_title": Boolean indicating whether this node type has a title field. Optional
+(defaults to TRUE).
+"title_label": The label for the title field of this content type. Optional (defaults
+to “Title”).
+"locked": Boolean indicating whether the administrator can change the
+machine name of this type. FALSE = changeable (not locked), TRUE =
+unchangeable (locked). Optional (defaults to TRUE
+*/
+
+/**
+* Implement hook_form() with the standard default form.
+*/
+/*function job_post_node_form($node, $form_state) {
+return node_content_form($node, $form_state);
+}*/
+/**
+* Implementation of hook_menu().
+*/
+function ys_makelaar_menu() {
+  $items['admin/config/ys_makelaar/settings'] = array(
+    'title' => 'YS Makelaar settings',
+    'description' => 'Add and Edit Feeds to extract realty data.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ys_makelaar_settings_form'),
+    'access arguments' => array('administer ys_makelaar'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'ys_makelaar.settings.inc',
+  );
+  $items['ys_makelaar/feed/%'] = array(
+    'title' => 'YS Makelaar Feed',
+    'description' => 'Feed a page.',
+    'page callback' => 'ys_makelaar_feed',
+    'page arguments' => array(2),                      //makelaaars_id
+    'access arguments' => array('administer ys_makelaar'),
+    'type' => MENU_CALLBACK,
+    'file' => 'ys_makelaar.settings.inc',
+  );
+  $items['ys_makelaar/feed_detail/%'] = array(
+    'page callback' => 'ys_makelaar_feed_detail',
+    'page arguments' => array(2),                      //makelaaars_id
+    'access arguments' => array('administer ys_makelaar'),
+    'type' => MENU_CALLBACK,
+    'file' => 'ys_makelaar.settings.inc',
+  );
+  $items['ys_makelaar/show_all'] = array(
+    'page callback' => 'ys_makelaar_show_all_objects',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+function ys_makelaar_theme() {
+  return array(
+    'display_makelaars' => array(
+      'variables' => array('makelaars' => NULL),
+    ),
+  );
+}
+
+function theme_display_makelaars($makelaars) {
+ $output = '<p>Dit si een test</p>';
+ return $output;
+}
+
+function ys_makelaar_show_all_objects() {
+  $query = db_select('ys_makelaar_details', 'ymd' )->extend('PagerDefault');
+  $query
+    //->condition('type', 'page')
+    ->fields('ymd', array('titel'))
+    ->limit(10);
+  $result = $query-> execute;
+  $output = '';
+  foreach ($result as $row) {
+    $output .= $row->titel."<br/>";
+  }
+  $output .= theme('pager');
+  drupal_set_message($output);
+}

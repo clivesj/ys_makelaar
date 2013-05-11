@@ -1,0 +1,7 @@
+name = YagoSoft Makelaar
+description = "Crawler to harvest realty on Curacao"
+package = JSJ Modules
+core = 7.x
+files[] = ys_makelaar.module
+files[] = ys_makelaar_theme.inc
+configure=admin/config/ys_makelaar/settings
